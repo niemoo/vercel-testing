@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Roles {
+  id     Int     @id @default(autoincrement())
+  name   String  @db.VarChar(5)
+  users  Users[]
+  admins Admin[]
+}
+
+model Users {
+  id          Int       @id @default(autoincrement())
+  role_id     Int
+  email       String    @db.VarChar(25)
+  username    String    @unique @db.VarChar(25)
+  password    String    @db.VarChar(8)
+  full_name   String    @db.VarChar(50)
+  no_telp     String    @db.VarChar(13)
+  created_at  DateTime
+  modified_at DateTime
+  role        Roles     @relation(fields: [role_id], references: [id])
+  bookings    Booking[]
+
+  @@index([role_id])
+}
+
+model Admin {
+  id          Int      @id @default(autoincrement())
+  role_id     Int
+  email       String   @db.VarChar(25)
+  username    String   @unique @db.VarChar(25)
+  password    String   @db.VarChar(8)
+  created_at  DateTime
+  modified_at DateTime
+  role        Roles    @relation(fields: [role_id], references: [id])
+
+  @@index([role_id])
+}
+
+model Car {
+  id            Int         @id @default(autoincrement())
+  category_id   Int
+  name          String      @db.VarChar(50)
+  transmission  String      @db.VarChar(10)
+  capacity      String      @db.VarChar(2)
+  color         String      @db.VarChar(10)
+  year          String      @db.VarChar(15)
+  images        String      @db.VarChar(255)
+  price_12      Int
+  price_24      Int
+  price_fullday Int
+  created_at    DateTime
+  modified_at   DateTime
+  category      CarCategory @relation(fields: [category_id], references: [id])
+  bookings      Booking[]
+
+  @@index([category_id])
+}
+
+model CarCategory {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(15)
+  cars Car[]
+}
+
+model Booking {
+  id             Int             @id @default(autoincrement())
+  user_id        Int
+  car_id         Int
+  booking_date   DateTime
+  user           Users           @relation(fields: [user_id], references: [id])
+  car            Car             @relation(fields: [car_id], references: [id])
+  bookingDetails BookingDetail[]
+  payments       Payment[]
+
+  @@index([user_id])
+  @@index([car_id])
+}
+
+model BookingDetail {
+  id           Int      @id @default(autoincrement())
+  booking_id   Int
+  alamat       String   @db.VarChar(255)
+  instagram    String   @db.VarChar(15)
+  tujuan_sewa  String   @db.VarChar(50)
+  rute         String   @db.VarChar(50)
+  jaminan      String   @db.VarChar(20)
+  total_price  Int
+  tempat_ambil String   @db.VarChar(255)
+  jam_mulai    String   @db.VarChar(6)
+  jam_akhir    String   @db.VarChar(6)
+  start_date   DateTime @db.Date
+  end_date     DateTime @db.Date
+  created_at   DateTime
+  modified_at  DateTime
+  booking      Booking  @relation(fields: [booking_id], references: [id])
+
+  @@index([booking_id])
+}
+
+model Payment {
+  id             Int      @id @default(autoincrement())
+  booking_id     Int
+  amount         Int
+  payment_date   DateTime
+  payment_method String   @db.VarChar(50)
+  payment_status String   @db.VarChar(20)
+  booking        Booking  @relation(fields: [booking_id], references: [id])
+
+  @@index([booking_id])
+}
